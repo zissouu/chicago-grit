@@ -3,34 +3,37 @@ using System.Collections.Generic;
 
 namespace ChicagoGrit
 {
-    class GangManager
+    public class GangManager
     {
         private Dictionary<string, int> relations = new()
         {
-            { "South Side Kings", 0 },
-            { "Iron Vultures", 0 }
+            {"South Side Kings", 0},
+            {"Iron Vultures", 0},
+            {"West Side Reapers", 0},
+            {"North End Ghosts", 0}
         };
 
-        public int GetRelation(string gangName)
+        public void AdjustRelation(string gang, int amount)
         {
-            return relations.ContainsKey(gangName) ? relations[gangName] : 0;
-        }
-
-        public void AdjustRelation(string gangName, int amount)
-        {
-            if (relations.ContainsKey(gangName))
+            if (relations.ContainsKey(gang))
             {
-                relations[gangName] = Math.Clamp(relations[gangName] + amount, -100, 100);
-                Console.WriteLine($"{gangName} relation: {relations[gangName]}");
+                relations[gang] += amount;
+                Console.WriteLine($"[Gang Update] {gang} relation is now {relations[gang]}");
             }
         }
 
-        public void ShowAll()
+        public int GetRelation(string gang)
         {
-            Console.WriteLine("\nGang Relations:");
-            foreach (var kv in relations)
+            return relations.ContainsKey(gang) ? relations[gang] : 0;
+        }
+
+        public void ShowRelations()
+        {
+            Console.WriteLine("\n--- Gang Relations ---");
+            foreach (var kvp in relations)
             {
-                Console.WriteLine($"{kv.Key}: {kv.Value}");
+                string status = kvp.Value >= 20 ? "Friendly" : kvp.Value <= -10 ? "Hostile" : "Neutral";
+                Console.WriteLine($"{kvp.Key}: {kvp.Value} ({status})");
             }
         }
     }

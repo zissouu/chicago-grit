@@ -6,51 +6,84 @@ namespace ChicagoGrit
     {
         static void Main(string[] args)
         {
-            Console.Title = "CHICAGO GRIT: Street Survival";
+            Console.WriteLine("=====================================");
+            Console.WriteLine("   CHICAGO GRIT: STREET SURVIVAL");
+            Console.WriteLine("=====================================\n");
 
             Player player = new Player();
             GangManager gangManager = new GangManager();
+            GangTerritoryManager territoryManager = new GangTerritoryManager();
             MissionManager missionManager = new MissionManager(player, gangManager);
+            GameTime gameTime = new GameTime();
 
-            Console.WriteLine("=====================================");
-            Console.WriteLine("   CHICAGO GRIT: STREET SURVIVAL");
-            Console.WriteLine("=====================================");
-            Console.WriteLine("Fresh on the South Side. No money. No crew. No respect.\n");
+            // Create a multi-day story arc
+            var kingsArc = new StoryArc(
+                "kings_arc",
+                "Rise with the Kings",
+                new List<Mission>
+                {
+                    missionManager.CreateKingsIntro()
+                    // Add additional missions for follow-ups, heists, etc.
+                });
+            missionManager.AddStoryArc(kingsArc);
 
-            bool isRunning = true;
-
-            while (isRunning)
+            bool running = true;
+            while(running)
             {
-                Console.WriteLine("\nWhat do you want to do?");
-                Console.WriteLine("[1] Hit the streets (check missions)");
-                Console.WriteLine("[2] Check your stats");
+                Console.WriteLine($"\n[Day {gameTime.Day}, {gameTime.CurrentTime()}]");
+                Console.WriteLine("What do you want to do?");
+                Console.WriteLine("[1] Hit the streets");
+                Console.WriteLine("[2] Check stats");
                 Console.WriteLine("[3] Check gang relations");
+                Console.WriteLine("[4] Check gang territories");
                 Console.WriteLine("[0] Exit game");
                 Console.Write("> ");
 
-                string choice = Console.ReadLine()?.Trim().ToLower() ?? "";
+                string input = Console.ReadLine()?.Trim();
+                Random rng = new();
 
-                switch (choice)
+                switch(input)
                 {
                     case "1":
-                        missionManager.CheckUnlocks();
+                        missionManager.CheckStoryArcs();
                         missionManager.ShowMissions();
+                        gameTime.AdvanceHours(rng.Next(2,4));
                         break;
                     case "2":
-                        player.ShowStatus();
+                        Console.WriteLine($"\nMoney: ${player.Money}, Reputation: {player.Reputation}");
                         break;
                     case "3":
-                        gangManager.ShowAll();
+                        gangManager.ShowRelations();
+                        break;
+                    case "4":
+                        territoryManager.ShowTerritories();
                         break;
                     case "0":
-                        Console.WriteLine("You fade into the shadows. Game over.");
-                        isRunning = false;
+                        running=false;
+                        Console.WriteLine("Exiting game. Stay alive!");
                         break;
                     default:
-                        Console.WriteLine("Invalid choice.");
+                        Console.WriteLine("Invalid input.");
                         break;
                 }
+
+                if(gameTime.Hour>=22)
+                    EvolveGangWars(gangManager, missionManager, territoryManager);
             }
+        }
+
+        static void EvolveGangWars(GangManager gangManager, MissionManager missionManager, GangTerritoryManager territoryManager)
+        {
+            Console.WriteLine("\n--- Night falls. Gangs are active. ---");
+            Random rng = new();
+            foreach(var gang in new[] {"South Side Kings","Iron Vultures","West Side Reapers","North End Ghosts"})
+            {
+                int change = rng.Next(-5,6);
+                if(gangManager.GetRelation(gang)<0){ change -= rng.Next(0,5); Console.WriteLine($"[Gang Alert] {gang} becomes aggressive!");}
+                gangManager.AdjustRelation(gang,change);
+            }
+            if(rng.NextDouble()<0.5) missionManager.TriggerRandomEvent();
+            territoryManager.RandomTerritoryShift(rng,gangManager);
         }
     }
 }
