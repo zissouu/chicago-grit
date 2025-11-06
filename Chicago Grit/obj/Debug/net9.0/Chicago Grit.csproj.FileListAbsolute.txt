@@ -1,0 +1,14 @@
+/Users/szyartojeffrey/Desktop/Chicago Grit/bin/Debug/net9.0/Chicago Grit
+/Users/szyartojeffrey/Desktop/Chicago Grit/bin/Debug/net9.0/Chicago Grit.deps.json
+/Users/szyartojeffrey/Desktop/Chicago Grit/bin/Debug/net9.0/Chicago Grit.runtimeconfig.json
+/Users/szyartojeffrey/Desktop/Chicago Grit/bin/Debug/net9.0/Chicago Grit.dll
+/Users/szyartojeffrey/Desktop/Chicago Grit/bin/Debug/net9.0/Chicago Grit.pdb
+/Users/szyartojeffrey/Desktop/Chicago Grit/obj/Debug/net9.0/Chicago Grit.GeneratedMSBuildEditorConfig.editorconfig
+/Users/szyartojeffrey/Desktop/Chicago Grit/obj/Debug/net9.0/Chicago Grit.AssemblyInfoInputs.cache
+/Users/szyartojeffrey/Desktop/Chicago Grit/obj/Debug/net9.0/Chicago Grit.AssemblyInfo.cs
+/Users/szyartojeffrey/Desktop/Chicago Grit/obj/Debug/net9.0/Chicago Grit.csproj.CoreCompileInputs.cache
+/Users/szyartojeffrey/Desktop/Chicago Grit/obj/Debug/net9.0/Chicago Grit.dll
+/Users/szyartojeffrey/Desktop/Chicago Grit/obj/Debug/net9.0/refint/Chicago Grit.dll
+/Users/szyartojeffrey/Desktop/Chicago Grit/obj/Debug/net9.0/Chicago Grit.pdb
+/Users/szyartojeffrey/Desktop/Chicago Grit/obj/Debug/net9.0/Chicago Grit.genruntimeconfig.cache
+/Users/szyartojeffrey/Desktop/Chicago Grit/obj/Debug/net9.0/ref/Chicago Grit.dll
