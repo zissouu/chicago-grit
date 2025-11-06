@@ -17,14 +17,16 @@ namespace ChicagoGrit
         private bool isRunning = true;
         private Player player;
         private GangManager gangManager;
+        private MissionManager missionManager;
         private Random random = new Random();
 
         public void Start()
         {
-            Console.Title = "CHICAGO GRIT: STREET SURVIVAL";
+            Console.Title = "CHICAGO GRIT: Street Survival";
             ShowIntro();
             player = new Player();
             gangManager = new GangManager();
+            missionManager = new MissionManager(player, gangManager);
 
             while (isRunning)
             {
@@ -48,6 +50,7 @@ namespace ChicagoGrit
             Console.WriteLine("[1] Hit the streets");
             Console.WriteLine("[2] Check your status");
             Console.WriteLine("[3] Check gang standings");
+            Console.WriteLine("[4] Check missions");
             Console.WriteLine("[0] Exit game");
             Console.Write("> ");
         }
@@ -65,6 +68,9 @@ namespace ChicagoGrit
                 case "3":
                     gangManager.ShowAll();
                     break;
+                case "4":
+                    missionManager.ShowMissions();
+                    break;
                 case "0":
                     Console.WriteLine("You walk away from the life... for now.");
                     isRunning = false;
@@ -77,6 +83,9 @@ namespace ChicagoGrit
 
         void StreetAction()
         {
+            // Check for story branch unlocks
+            missionManager.CheckUnlocks();
+
             int eventRoll = random.Next(1, 4);
 
             switch (eventRoll)
@@ -144,8 +153,16 @@ namespace ChicagoGrit
 
             if (input == "1")
             {
-                Console.WriteLine("He nods. 'We got eyes on you. Keep it real, we might have work soon.'");
-                gangManager.AdjustRelation("South Side Kings", 15);
+                if (!player.HasFlag("metKingsScout"))
+                {
+                    player.SetFlag("metKingsScout");
+                    Console.WriteLine("He nods. 'We got eyes on you. Keep it real, we might have work soon.'");
+                    gangManager.AdjustRelation("South Side Kings", 15);
+                }
+                else
+                {
+                    Console.WriteLine("He recognizes you. 'We’ll be in touch soon.'");
+                }
             }
             else
             {
@@ -190,6 +207,7 @@ namespace ChicagoGrit
         public int Health { get; private set; } = 100;
         public int Money { get; private set; } = 20;
         public int Reputation { get; private set; } = 0;
+        private Dictionary<string, bool> storyFlags = new Dictionary<string, bool>();
 
         public void ShowStatus()
         {
@@ -219,6 +237,16 @@ namespace ChicagoGrit
         {
             Reputation += amount;
             Console.WriteLine($"Your reputation changed by {amount}. Now at {Reputation}.");
+        }
+
+        public void SetFlag(string flag)
+        {
+            storyFlags[flag] = true;
+        }
+
+        public bool HasFlag(string flag)
+        {
+            return storyFlags.ContainsKey(flag) && storyFlags[flag];
         }
     }
 
@@ -257,6 +285,11 @@ namespace ChicagoGrit
             }
         }
 
+        public int GetRelation(string gangName)
+        {
+            return gangs.ContainsKey(gangName) ? gangs[gangName].Relation : 0;
+        }
+
         public void ShowAll()
         {
             Console.WriteLine("\nGang Standings:");
@@ -265,5 +298,114 @@ namespace ChicagoGrit
                 Console.WriteLine($"{gang.Name}: {gang.Relation}");
             }
         }
+    }
+
+    class Mission
+    {
+        public string Id { get; }
+        public string Title { get; }
+        public string Description { get; }
+        public bool IsCompleted { get; private set; }
+
+        private Action<Player, GangManager> onComplete;
+
+        public Mission(string id, string title, string desc, Action<Player, GangManager> completeAction)
+        {
+            Id = id;
+            Title = title;
+            Description = desc;
+            onComplete = completeAction;
+        }
+
+        public void Complete(Player player, GangManager gangManager)
+        {
+            if (!IsCompleted)
+            {
+                IsCompleted = true;
+                Console.WriteLine($"\nMission Complete: {Title}");
+                onComplete?.Invoke(player, gangManager);
+            }
+        }
+    }
+
+    class MissionManager
+    {
+        private Player player;
+        private GangManager gangManager;
+        private List<Mission> missions = new List<Mission>();
+
+        public MissionManager(Player player, GangManager gangManager)
+        {
+            this.player = player;
+            this.gangManager = gangManager;
+        }
+
+        public void CheckUnlocks()
+        {
+            // Example unlocks based on gang relations
+            if (gangManager.GetRelation("South Side Kings") >= 20 && !HasMission("kings_intro"))
+            {
+                Mission kingsMission = new Mission(
+                    "kings_intro",
+                    "Kings’ First Test",
+                    "Prove your loyalty to the South Side Kings by collecting from a local who’s late on his payment.",
+                    (p, g) =>
+                    {
+                        p.AddMoney(50);
+                        p.AddReputation(10);
+                        g.AdjustRelation("South Side Kings", 10);
+                    }
+                );
+                missions.Add(kingsMission);
+                Console.WriteLine("\nA new mission is available: Kings’ First Test");
+            }
+        }
+
+        public void ShowMissions()
+        {
+            if (missions.Count == 0)
+            {
+                Console.WriteLine("\nNo active missions yet. Keep building your reputation.");
+                return;
+            }
+
+            Console.WriteLine("\nCurrent Missions:");
+            foreach (var m in missions)
+            {
+                Console.WriteLine($"- {m.Title} {(m.IsCompleted ? "(Completed)" : "")}");
+            }
+
+            Console.WriteLine("\nDo you want to attempt a mission? (enter mission title or press Enter to skip)");
+            Console.Write("> ");
+            string input = Console.ReadLine();
+
+            if (!string.IsNullOrWhiteSpace(input))
+            {
+                AttemptMission(input.Trim());
+            }
+        }
+
+        public void AttemptMission(string title)
+        {
+            Mission mission = missions.Find(m => m.Title.Equals(title, StringComparison.OrdinalIgnoreCase));
+
+            if (mission == null)
+            {
+                Console.WriteLine("No mission found by that name.");
+                return;
+            }
+
+            if (mission.IsCompleted)
+            {
+                Console.WriteLine("You already finished that one.");
+                return;
+            }
+
+            Console.WriteLine($"You head out to complete: {mission.Title}");
+            // Simplified mission result
+            mission.Complete(player, gangManager);
+        }
+
+        bool HasMission(string id) => missions.Exists(m => m.Id == id);
     }
 }
